@@ -197,22 +197,21 @@ class SnakeGame:
         Returns:
             str: Character pressed, or None if timeout occurred
         """
+        if timeout_ms is not None:
+            # Use select to wait for input with timeout
+            timeout_sec = timeout_ms / 1000.0
+            ready, _, _ = select.select([sys.stdin], [], [], timeout_sec)
+            
+            if not ready:
+                # Timeout occurred, no input available
+                return None
+        
+        # Input is available (or no timeout specified)
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
         
         try:
             tty.setraw(sys.stdin.fileno())
-            
-            if timeout_ms is not None:
-                # Use select to wait for input with timeout
-                timeout_sec = timeout_ms / 1000.0
-                ready, _, _ = select.select([sys.stdin], [], [], timeout_sec)
-                
-                if not ready:
-                    # Timeout occurred, no input available
-                    return None
-            
-            # Input is available (or no timeout specified)
             ch = sys.stdin.read(1)
             
             # Handle arrow keys
