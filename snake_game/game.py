@@ -5,6 +5,8 @@ import json
 import termios
 import tty
 import select
+import os
+import shutil
 from typing import List, Tuple, Optional
 from enum import Enum
 
@@ -34,9 +36,21 @@ class Colors:
     BG_RED = '\033[41m'
 
 class SnakeGame:
-    def __init__(self, width: int = 40, height: int = 20, debug: bool = False, moves: List[str] = None, skip_menu: bool = False):
-        self.width = width
-        self.height = height
+    def __init__(self, width: int = None, height: int = None, debug: bool = True, moves: List[str] = None, skip_menu: bool = False):
+        # Get terminal dimensions if not specified
+        if width is None or height is None:
+            try:
+                terminal_size = shutil.get_terminal_size()
+                # Use terminal dimensions, accounting for double-wide characters and some padding
+                self.width = terminal_size.columns // 2 - 2  # Divide by 2 for double-wide chars
+                self.height = terminal_size.lines - 6  # Leave room for header and controls
+            except:
+                # Fallback to default if terminal size detection fails
+                self.width = 40
+                self.height = 20
+        else:
+            self.width = width
+            self.height = height
         self.debug = debug
         self.moves = moves or []
         self.move_index = 0
@@ -314,9 +328,7 @@ class SnakeGame:
                         self.render_game()
                         print(f"\n{Colors.RED}{Colors.BOLD}GAME OVER!{Colors.RESET}")
                         print(f"Final Score: {Colors.YELLOW}{self.score}{Colors.RESET}")
-                        if not self.automated:
-                            print("Press any key to exit...")
-                            self.getch()
+                        # Exit immediately, leaving the board visible
                         break
                         
                     # For automated mode, still add a small delay
