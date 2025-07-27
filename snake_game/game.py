@@ -249,14 +249,10 @@ class SnakeGame:
         print(f"key:{key}")
         if key.lower() == 'q':
             return False
-        elif key == '\x1b[A' or key.lower() == 'w':  # Up arrow or W
+        else:
+            # TEMPORARY DEBUG: Make ANY key change direction to UP
+            print(f"DEBUG: Changing direction to UP for any key: {repr(key)}")
             self.change_direction(Direction.UP)
-        elif key == '\x1b[B' or key.lower() == 's':  # Down arrow or S
-            self.change_direction(Direction.DOWN)
-        elif key == '\x1b[D' or key.lower() == 'a':  # Left arrow or A
-            self.change_direction(Direction.LEFT)
-        elif key == '\x1b[C' or key.lower() == 'd':  # Right arrow or D
-            self.change_direction(Direction.RIGHT)
         return True
             
     def run(self):
