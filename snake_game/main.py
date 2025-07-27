@@ -15,6 +15,8 @@ def main():
                        help='Game height (default: 20)')
     parser.add_argument('--moves', type=str, 
                        help='Sequence of moves: u(up), d(down), l(left), r(right), .(no move)')
+    parser.add_argument('-g', '--game', action='store_true',
+                       help='Skip menu and go directly to game')
     
     args = parser.parse_args()
     
@@ -24,7 +26,7 @@ def main():
             print("For Windows, consider using WSL or a Unix-compatible terminal.")
             
         moves = list(args.moves) if args.moves else None
-        game = SnakeGame(width=args.width, height=args.height, debug=args.debug, moves=moves)
+        game = SnakeGame(width=args.width, height=args.height, debug=args.debug, moves=moves, skip_menu=args.game)
         game.run()
         
     except Exception as e:
