@@ -265,10 +265,10 @@ class SnakeGame:
                         if next_move:
                             self.process_automated_move(next_move)
                     else:
-                        # Interactive mode - get keyboard input
+                        # Interactive mode - get keyboard input with timeout
                         try:
-                            key = self.getch()
-                            if not self.handle_input(key):
+                            key = self.getch(timeout_ms=self.game_speed_ms)
+                            if key and not self.handle_input(key):
                                 break  # User pressed Q to quit
                         except KeyboardInterrupt:
                             break
@@ -284,9 +284,8 @@ class SnakeGame:
                             self.getch()
                         break
                         
-                    if not self.debug and not self.automated:
-                        time.sleep(self.game_speed)
-                    elif self.automated and not self.debug:
+                    # For automated mode, still add a small delay
+                    if self.automated and not self.debug:
                         time.sleep(0.1)
                             
         except KeyboardInterrupt:
