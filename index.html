@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐍 Snake Game</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #000;
+            color: #0f0;
+            margin: 0;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #0f0;
+        }
+        
+        .game-links {
+            margin: 40px 0;
+        }
+        
+        .game-link {
+            display: inline-block;
+            background-color: #333;
+            color: #0f0;
+            border: 2px solid #0f0;
+            padding: 20px 40px;
+            margin: 10px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+        }
+        
+        .game-link:hover {
+            background-color: #0f0;
+            color: #000;
+            transform: scale(1.05);
+        }
+        
+        .description {
+            margin: 40px 0;
+            line-height: 1.6;
+            font-size: 1.1em;
+        }
+        
+        .github-link {
+            color: #0f0;
+            text-decoration: none;
+        }
+        
+        .github-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐍 Snake Game</h1>
+        
+        <div class="description">
+            <p>Classic Snake game implemented in Python with both terminal and web versions!</p>
+        </div>
+        
+        <div class="game-links">
+            <a href="snake_web.html" class="game-link">
+                🌐 Play in Browser
+            </a>
+        </div>
+        
+        <div class="description">
+            <h2>Features</h2>
+            <ul style="text-align: left; display: inline-block;">
+                <li>🖥️ Terminal version with keyboard controls</li>
+                <li>🌐 Web version powered by Pyodide</li>
+                <li>🎮 WASD and arrow key controls</li>
+                <li>⚡ Adjustable game speed (+/- keys)</li>
+                <li>🎯 Score tracking</li>
+                <li>🐍 Growing snake mechanics</li>
+                <li>💥 Collision detection</li>
+            </ul>
+            
+            <h2>Controls</h2>
+            <ul style="text-align: left; display: inline-block;">
+                <li><strong>Move:</strong> Arrow keys or WASD</li>
+                <li><strong>Speed up:</strong> + or = key</li>
+                <li><strong>Speed down:</strong> - or _ key</li>
+                <li><strong>Quit:</strong> Q key</li>
+            </ul>
+            
+            <p style="margin-top: 40px;">
+                <a href="https://github.com/kevinodotnet/snake" class="github-link">
+                    📂 View Source Code on GitHub
+                </a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
