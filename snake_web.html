@@ -24,13 +24,20 @@
         }
         
         #game-output {
-            font-size: 8px;
+            font-size: 10px;
             line-height: 1.0;
             white-space: pre;
             font-family: 'Courier New', monospace;
-            min-height: 800px;
-            min-width: 1200px;
+            min-height: 600px;
+            min-width: 1000px;
             overflow: auto;
+            word-spacing: 0;
+            letter-spacing: 0;
+        }
+        
+        /* Ensure consistent character widths */
+        #game-output * {
+            font-variant-numeric: tabular-nums;
         }
         
         #controls {
@@ -236,14 +243,14 @@ class WebSnakeGame:
         # Draw snake
         for i, (x, y) in enumerate(self.snake):
             if i == 0:
-                grid[y][x] = '🐍'
+                grid[y][x] = '●'  # Snake head
             else:
-                grid[y][x] = '🟢'
+                grid[y][x] = '○'  # Snake body
                 
         # Draw food
         if self.food:
             fx, fy = self.food
-            grid[fy][fx] = '🍎'
+            grid[fy][fx] = '*'  # Food
             
         # Convert grid to string
         for y in range(self.height):
@@ -253,11 +260,17 @@ class WebSnakeGame:
                 if char == '██':
                     # Border blocks are double-width, no extra spacing needed
                     line += f"{Colors.CYAN}{Colors.BOLD}{char}{Colors.RESET}"
-                elif char in ['🐍', '🟢', '🍎']:
-                    # Emojis are double-width, no extra spacing needed
-                    line += char
+                elif char == '●':
+                    # Snake head - colored single character with padding
+                    line += f"{Colors.RED}{Colors.BOLD}{char} {Colors.RESET}"
+                elif char == '○':
+                    # Snake body - colored single character with padding
+                    line += f"{Colors.GREEN}{char} {Colors.RESET}"
+                elif char == '*':
+                    # Food - colored single character with padding
+                    line += f"{Colors.YELLOW}{Colors.BOLD}{char} {Colors.RESET}"
                 else:
-                    # Empty spaces need double-width to match borders and emojis
+                    # Empty spaces - double space to match double-width borders
                     line += '  '
             output.append(line)
         

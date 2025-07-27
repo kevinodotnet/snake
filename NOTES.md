@@ -103,3 +103,13 @@
 - **Root Cause**: Mixed spacing - borders (██) had no extra space, emojis had +1 space, empty cells had +1 space
 - **Fix**: Made spacing consistent - no extra space for double-width characters (borders and emojis), double space for empty cells
 - **Result**: Perfect grid alignment with all elements properly positioned
+
+### Snake Body Width Overflow Issue (Fixed)
+- **Problem**: Snake body segments (emojis) causing grid to overflow on right side due to inconsistent character widths
+- **Root Cause**: Emojis are inherently double-width Unicode characters with unpredictable rendering widths
+- **Fix**: Replaced emojis with consistent ASCII characters:
+  - Snake head: `●` (red bold)
+  - Snake body: `○` (green)
+  - Food: `*` (yellow bold)
+  - All with consistent single-char + space padding to match double-width borders
+- **Result**: Grid maintains perfect alignment regardless of snake length
