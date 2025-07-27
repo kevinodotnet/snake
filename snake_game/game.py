@@ -189,12 +189,6 @@ class SnakeGame:
             print()
         
         print(f"\n{Colors.WHITE}Controls: Arrow keys or WASD to move, Q to quit{Colors.RESET}")
-        
-        # Show debug log on screen
-        if self.debug_log:
-            print(f"\n{Colors.YELLOW}DEBUG LOG:{Colors.RESET}")
-            for msg in self.debug_log[-5:]:  # Show last 5 messages
-                print(f"{Colors.YELLOW}{msg}{Colors.RESET}")
     
     def setup_terminal(self):
         """Set terminal to cbreak mode with no echo for the entire game session"""
