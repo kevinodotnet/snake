@@ -245,8 +245,8 @@ class SnakeGame:
         return ch
     
     def handle_input(self, key: str) -> bool:
-        
         """Handle keyboard input. Returns False if should quit"""
+        print(f"key:{key}")
         if key.lower() == 'q':
             return False
         elif key == '\x1b[A' or key.lower() == 'w':  # Up arrow or W
