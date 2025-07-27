@@ -135,7 +135,7 @@ class SnakeGame:
                 
         if self.food:
             fx, fy = self.food
-            grid[fy][fx] = '🍎'
+            grid[fy][fx] = '*'
             
         for y in range(self.height):
             for x in range(self.width):
@@ -146,7 +146,7 @@ class SnakeGame:
                     print(f"{Colors.GREEN}{Colors.BOLD}{char}{Colors.RESET}", end='')
                 elif char == '○':
                     print(f"{Colors.GREEN}{char}{Colors.RESET}", end='')
-                elif char == '🍎':
+                elif char == '*':
                     print(f"{Colors.RED}{Colors.BOLD}{char}{Colors.RESET}", end='')
                 else:
                     print(char, end='')
