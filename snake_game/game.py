@@ -2,6 +2,8 @@ import random
 import time
 import sys
 import json
+import termios
+import tty
 from typing import List, Tuple, Optional
 from enum import Enum
 
@@ -133,6 +135,85 @@ class SnakeGame:
     def print_debug_state(self):
         if self.debug:
             print(f"\nDEBUG STATE: {json.dumps(self.get_debug_state(), indent=2)}")
+    
+    def clear_screen(self):
+        print('\033[2J\033[H', end='')
+    
+    def render_game(self):
+        self.clear_screen()
+        
+        print(f"{Colors.YELLOW}{Colors.BOLD}🐍 SNAKE GAME 🐍{Colors.RESET}")
+        print(f"Score: {Colors.GREEN}{self.score}{Colors.RESET} | Direction: {Colors.CYAN}{self.direction.name}{Colors.RESET}")
+        print()
+        
+        # Create grid
+        grid = [[' ' for _ in range(self.width)] for _ in range(self.height)]
+        
+        # Draw borders
+        for x in range(self.width):
+            grid[0][x] = '█'
+            grid[self.height - 1][x] = '█'
+        for y in range(self.height):
+            grid[y][0] = '█'
+            grid[y][self.width - 1] = '█'
+            
+        # Draw snake
+        for i, (x, y) in enumerate(self.snake):
+            if i == 0:
+                grid[y][x] = '●'  # Head
+            else:
+                grid[y][x] = '○'  # Body
+                
+        # Draw food
+        if self.food:
+            fx, fy = self.food
+            grid[fy][fx] = '*'
+            
+        # Print grid
+        for y in range(self.height):
+            for x in range(self.width):
+                char = grid[y][x]
+                if char == '█':
+                    print(f"{Colors.CYAN}{Colors.BOLD}{char}{Colors.RESET}", end='')
+                elif char == '●':
+                    print(f"{Colors.GREEN}{Colors.BOLD}{char}{Colors.RESET}", end='')
+                elif char == '○':
+                    print(f"{Colors.GREEN}{char}{Colors.RESET}", end='')
+                elif char == '*':
+                    print(f"{Colors.RED}{Colors.BOLD}{char}{Colors.RESET}", end='')
+                else:
+                    print(char, end='')
+            print()
+        
+        print(f"\n{Colors.WHITE}Controls: Arrow keys or WASD to move, Q to quit{Colors.RESET}")
+    
+    def getch(self):
+        """Get a single character from stdin without pressing enter"""
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(sys.stdin.fileno())
+            ch = sys.stdin.read(1)
+            # Handle arrow keys
+            if ch == '\x1b':
+                ch += sys.stdin.read(2)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
+    
+    def handle_input(self, key: str) -> bool:
+        """Handle keyboard input. Returns False if should quit"""
+        if key.lower() == 'q':
+            return False
+        elif key == '\x1b[A' or key.lower() == 'w':  # Up arrow or W
+            self.change_direction(Direction.UP)
+        elif key == '\x1b[B' or key.lower() == 's':  # Down arrow or S
+            self.change_direction(Direction.DOWN)
+        elif key == '\x1b[D' or key.lower() == 'a':  # Left arrow or A
+            self.change_direction(Direction.LEFT)
+        elif key == '\x1b[C' or key.lower() == 'd':  # Right arrow or D
+            self.change_direction(Direction.RIGHT)
+        return True
             
     def run(self):
         try:
@@ -144,6 +225,10 @@ class SnakeGame:
                     break
                     
                 if self.state == GameState.PLAYING:
+                    # Render the game (unless automated and not debug)
+                    if not self.automated or self.debug:
+                        self.render_game()
+                        
                     if self.debug:
                         self.print_debug_state()
                         
@@ -152,21 +237,34 @@ class SnakeGame:
                         next_move = self.get_next_move()
                         if next_move:
                             self.process_automated_move(next_move)
+                    else:
+                        # Interactive mode - get keyboard input
+                        try:
+                            key = self.getch()
+                            if not self.handle_input(key):
+                                break  # User pressed Q to quit
+                        except KeyboardInterrupt:
+                            break
                     
                     if not self.move_snake():
                         self.state = GameState.GAME_OVER
-                        continue
+                        # Show game over screen
+                        self.render_game()
+                        print(f"\n{Colors.RED}{Colors.BOLD}GAME OVER!{Colors.RESET}")
+                        print(f"Final Score: {Colors.YELLOW}{self.score}{Colors.RESET}")
+                        if not self.automated:
+                            print("Press any key to exit...")
+                            self.getch()
+                        break
                         
                     if not self.debug and not self.automated:
                         time.sleep(self.game_speed)
                     elif self.automated and not self.debug:
                         time.sleep(0.1)
                             
-                elif self.state == GameState.GAME_OVER:
-                    break
-                        
         except KeyboardInterrupt:
             pass
         finally:
             if self.automated:
                 print(f"\nFINAL STATE: {json.dumps(self.get_debug_state(), indent=2)}")
+            print(f"\n{Colors.YELLOW}Thanks for playing Snake! 🐍{Colors.RESET}")
