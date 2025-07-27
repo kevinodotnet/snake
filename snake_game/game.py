@@ -42,7 +42,7 @@ class SnakeGame:
             terminal_size = shutil.get_terminal_size()
             # Use terminal dimensions, accounting for double-wide characters and some padding
             self.width = terminal_size.columns // 2 - 2  # Divide by 2 for double-wide chars
-            self.height = terminal_size.lines - 6  # Leave room for header and controls
+            self.height = terminal_size.lines - 12  # Leave room for header, controls, speed, debug info
         else:
             self.width = width
             self.height = height
