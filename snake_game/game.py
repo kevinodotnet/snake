@@ -142,7 +142,8 @@ class SnakeGame:
         print('\033[2J\033[H', end='')
     
     def render_game(self):
-        self.clear_screen()
+        # Move cursor to top-left instead of clearing screen
+        print('\033[H', end='')
         
         print(f"{Colors.YELLOW}{Colors.BOLD}🐍 SNAKE GAME 🐍{Colors.RESET}")
         print(f"Score: {Colors.GREEN}{self.score}{Colors.RESET} | Direction: {Colors.CYAN}{self.direction.name}{Colors.RESET}")
@@ -175,16 +176,16 @@ class SnakeGame:
         for y in range(self.height):
             for x in range(self.width):
                 char = grid[y][x]
-                if char == '█':
+                if char == '██':
                     print(f"{Colors.CYAN}{Colors.BOLD}{char}{Colors.RESET}", end='')
-                elif char == '●':
-                    print(f"{Colors.GREEN}{Colors.BOLD}{char}{Colors.RESET}", end='')
-                elif char == '○':
-                    print(f"{Colors.GREEN}{char}{Colors.RESET}", end='')
-                elif char == '*':
-                    print(f"{Colors.RED}{Colors.BOLD}{char}{Colors.RESET}", end='')
+                elif char == '🐍':
+                    print(char, end='')  # Snake head emoji
+                elif char == '🟢':
+                    print(char, end='')  # Snake body emoji
+                elif char == '🍎':
+                    print(char, end='')  # Food emoji
                 else:
-                    print(char, end='')
+                    print(char + ' ', end='')  # Add space for single-width chars to match double-width
             print()
         
         print(f"\n{Colors.WHITE}Controls: Arrow keys or WASD to move, Q to quit{Colors.RESET}")
