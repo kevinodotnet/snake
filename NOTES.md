@@ -91,3 +91,9 @@
 - **Problem**: Terminal version (80x40) vs web version (40x20) had different game areas
 - **Fix**: Standardized web version to 80x40 and adjusted CSS for proper display
 - **Result**: Consistent game experience across both platforms
+
+### Regex Syntax Error (Fixed)
+- **Problem**: Invalid regular expression syntax causing JavaScript error at runtime
+- **Root Cause**: Incorrect escaping of backslashes in regex patterns for ANSI codes
+- **Fix**: Changed from string-based regex construction to proper regex literals with correct escaping
+- **Result**: JavaScript error eliminated, ANSI conversion now works properly

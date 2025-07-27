@@ -374,26 +374,26 @@ game = WebSnakeGame()
             let openTags = 0;
             
             // First, handle reset codes by closing all open tags
-            result = result.replace(/\\033\\[0m/g, () => {
+            result = result.replace(/\033\[0m/g, () => {
                 let closeTags = '</span>'.repeat(openTags);
                 openTags = 0;
                 return closeTags;
             });
             
             // Then handle color and style codes
-            const colorMap = {
-                '\\033\\[91m': '<span style="color: #ff6b6b;">',     // Red
-                '\\033\\[92m': '<span style="color: #51cf66;">',     // Green
-                '\\033\\[93m': '<span style="color: #ffd93d;">',     // Yellow
-                '\\033\\[94m': '<span style="color: #74c0fc;">',     // Blue
-                '\\033\\[95m': '<span style="color: #d0bfff;">',     // Magenta
-                '\\033\\[96m': '<span style="color: #66d9ef;">',     // Cyan
-                '\\033\\[97m': '<span style="color: #f8f8f2;">',     // White
-                '\\033\\[1m': '<span style="font-weight: bold;">'    // Bold
-            };
+            const colorMap = [
+                [/\033\[91m/g, '<span style="color: #ff6b6b;">'],     // Red
+                [/\033\[92m/g, '<span style="color: #51cf66;">'],     // Green
+                [/\033\[93m/g, '<span style="color: #ffd93d;">'],     // Yellow
+                [/\033\[94m/g, '<span style="color: #74c0fc;">'],     // Blue
+                [/\033\[95m/g, '<span style="color: #d0bfff;">'],     // Magenta
+                [/\033\[96m/g, '<span style="color: #66d9ef;">'],     // Cyan
+                [/\033\[97m/g, '<span style="color: #f8f8f2;">'],     // White
+                [/\033\[1m/g, '<span style="font-weight: bold;">']    // Bold
+            ];
             
-            for (const [ansiCode, htmlTag] of Object.entries(colorMap)) {
-                result = result.replace(new RegExp(ansiCode, 'g'), () => {
+            for (const [regex, htmlTag] of colorMap) {
+                result = result.replace(regex, () => {
                     openTags++;
                     return htmlTag;
                 });
