@@ -43,7 +43,6 @@ class SnakeGame:
         self.automated = bool(moves)
         self.skip_menu = skip_menu
         self.original_terminal_settings = None
-        self.debug_log = []  # Store recent debug messages
         self.reset_game()
         self.state = GameState.PLAYING if (self.automated or self.skip_menu) else GameState.MENU
         
@@ -255,39 +254,16 @@ class SnakeGame:
     
     def handle_input(self, key: str) -> bool:
         """Handle keyboard input. Returns False if should quit"""
-        # Add to debug log instead of print
-        self.debug_log.append(f"key: {key}")
-        self.debug_log.append(f"repr: {repr(key)}")
-        self.debug_log.append(f"len: {len(key)}")
-        
         if key.lower() == 'q':
             return False
-        elif key == '\x1b[A':
-            self.debug_log.append("UP arrow matched!")
+        elif key == '\x1b[A' or key.lower() == 'w':  # Up arrow or W
             self.change_direction(Direction.UP)
-        elif key.lower() == 'w':
-            self.debug_log.append("W key matched!")
-            self.change_direction(Direction.UP)
-        elif key == '\x1b[B':
-            self.debug_log.append("DOWN arrow matched!")
+        elif key == '\x1b[B' or key.lower() == 's':  # Down arrow or S
             self.change_direction(Direction.DOWN)
-        elif key.lower() == 's':
-            self.debug_log.append("S key matched!")
-            self.change_direction(Direction.DOWN)
-        elif key == '\x1b[D':
-            self.debug_log.append("LEFT arrow matched!")
+        elif key == '\x1b[D' or key.lower() == 'a':  # Left arrow or A
             self.change_direction(Direction.LEFT)
-        elif key.lower() == 'a':
-            self.debug_log.append("A key matched!")
-            self.change_direction(Direction.LEFT)
-        elif key == '\x1b[C':
-            self.debug_log.append("RIGHT arrow matched!")
+        elif key == '\x1b[C' or key.lower() == 'd':  # Right arrow or D
             self.change_direction(Direction.RIGHT)
-        elif key.lower() == 'd':
-            self.debug_log.append("D key matched!")
-            self.change_direction(Direction.RIGHT)
-        else:
-            self.debug_log.append(f"No match for key {repr(key)}")
         return True
             
     def run(self):
