@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐍 Snake Game in Browser</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #000;
+            color: #0f0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #game-container {
+            border: 2px solid #0f0;
+            padding: 10px;
+            background-color: #111;
+            border-radius: 5px;
+        }
+        
+        #game-output {
+            font-size: 12px;
+            line-height: 1.2;
+            white-space: pre;
+            font-family: 'Courier New', monospace;
+            min-height: 600px;
+            min-width: 800px;
+        }
+        
+        #controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .button {
+            background-color: #333;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .button:hover {
+            background-color: #0f0;
+            color: #000;
+        }
+        
+        #loading {
+            color: #ff0;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🐍 Snake Game - Python in Browser</h1>
+    
+    <div id="loading">Loading Python environment...</div>
+    
+    <div id="game-container" style="display: none;">
+        <div id="game-output"></div>
+    </div>
+    
+    <div id="controls">
+        <div>
+            <button class="button" onclick="sendKey('w')">↑ (W)</button>
+        </div>
+        <div>
+            <button class="button" onclick="sendKey('a')">← (A)</button>
+            <button class="button" onclick="sendKey('s')">↓ (S)</button>
+            <button class="button" onclick="sendKey('d')">→ (D)</button>
+        </div>
+        <div>
+            <button class="button" onclick="sendKey('+')">Faster (+)</button>
+            <button class="button" onclick="sendKey('-')">Slower (-)</button>
+            <button class="button" onclick="sendKey('q')">Quit (Q)</button>
+        </div>
+        <p>Or use keyboard: Arrow keys, WASD to move, +/- for speed, Q to quit</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    <script>
+        let pyodide;
+        let gameRunning = false;
+        let keyQueue = [];
+        
+        async function main() {
+            pyodide = await loadPyodide();
+            
+            // Install required packages
+            await pyodide.loadPackage(["micropip"]);
+            
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            
+            // Load the Python game code
+            pyodide.runPython(`
+import asyncio
+import time
+import random
+from enum import Enum
+from typing import List, Tuple, Optional
+import json
+
+class Direction(Enum):
+    UP = (0, -1)
+    DOWN = (0, 1)
+    LEFT = (-1, 0)
+    RIGHT = (1, 0)
+
+class GameState(Enum):
+    MENU = "menu"
+    PLAYING = "playing"
+    GAME_OVER = "game_over"
+
+class Colors:
+    RESET = '\\033[0m'
+    RED = '\\033[91m'
+    GREEN = '\\033[92m'
+    YELLOW = '\\033[93m'
+    BLUE = '\\033[94m'
+    MAGENTA = '\\033[95m'
+    CYAN = '\\033[96m'
+    WHITE = '\\033[97m'
+    BOLD = '\\033[1m'
+
+class WebSnakeGame:
+    def __init__(self, width: int = 40, height: int = 20):
+        self.width = width
+        self.height = height
+        self.debug = True
+        self.reset_game()
+        self.state = GameState.PLAYING
+        self.output_callback = None
+        
+    def reset_game(self):
+        self.snake: List[Tuple[int, int]] = [(self.width // 2, self.height // 2)]
+        self.direction = Direction.RIGHT
+        self.food: Optional[Tuple[int, int]] = None
+        self.score = 0
+        self.game_speed_ms = 150
+        self.place_food()
+        
+    def place_food(self):
+        while True:
+            x = random.randint(1, self.width - 2)
+            y = random.randint(1, self.height - 2)
+            if (x, y) not in self.snake:
+                self.food = (x, y)
+                break
+                
+    def move_snake(self) -> bool:
+        head_x, head_y = self.snake[0]
+        dx, dy = self.direction.value
+        new_head = (head_x + dx, head_y + dy)
+        
+        if (new_head[0] <= 0 or new_head[0] >= self.width - 1 or
+            new_head[1] <= 0 or new_head[1] >= self.height - 1 or
+            new_head in self.snake):
+            return False
+            
+        self.snake.insert(0, new_head)
+        
+        if new_head == self.food:
+            self.score += 10
+            self.place_food()
+            if self.game_speed_ms > 50:
+                self.game_speed_ms -= 5
+        else:
+            self.snake.pop()
+            
+        return True
+        
+    def change_direction(self, new_direction: Direction):
+        opposite_directions = {
+            Direction.UP: Direction.DOWN,
+            Direction.DOWN: Direction.UP,
+            Direction.LEFT: Direction.RIGHT,
+            Direction.RIGHT: Direction.LEFT
+        }
+        
+        if new_direction != opposite_directions.get(self.direction):
+            self.direction = new_direction
+            
+    def handle_input(self, key: str) -> bool:
+        if key.lower() == 'q':
+            return False
+        elif key.lower() == 'w':
+            self.change_direction(Direction.UP)
+        elif key.lower() == 's':
+            self.change_direction(Direction.DOWN)
+        elif key.lower() == 'a':
+            self.change_direction(Direction.LEFT)
+        elif key.lower() == 'd':
+            self.change_direction(Direction.RIGHT)
+        elif key == '+' or key == '=':
+            self.game_speed_ms = max(10, self.game_speed_ms - 10)
+        elif key == '-' or key == '_':
+            self.game_speed_ms = min(1000, self.game_speed_ms + 10)
+        return True
+    
+    def render_game(self) -> str:
+        output = []
+        output.append(f"{Colors.YELLOW}{Colors.BOLD}🐍 SNAKE GAME 🐍{Colors.RESET}")
+        output.append(f"Score: {Colors.GREEN}{self.score}{Colors.RESET} | Direction: {Colors.CYAN}{self.direction.name}{Colors.RESET}")
+        output.append("")
+        
+        # Create grid
+        grid = [[' ' for _ in range(self.width)] for _ in range(self.height)]
+        
+        # Draw borders
+        for x in range(self.width):
+            grid[0][x] = '██'
+            grid[self.height - 1][x] = '██'
+        for y in range(self.height):
+            grid[y][0] = '██'
+            grid[y][self.width - 1] = '██'
+            
+        # Draw snake
+        for i, (x, y) in enumerate(self.snake):
+            if i == 0:
+                grid[y][x] = '🐍'
+            else:
+                grid[y][x] = '🟢'
+                
+        # Draw food
+        if self.food:
+            fx, fy = self.food
+            grid[fy][fx] = '🍎'
+            
+        # Convert grid to string
+        for y in range(self.height):
+            line = ""
+            for x in range(self.width):
+                char = grid[y][x]
+                if char == '██':
+                    line += f"{Colors.CYAN}{Colors.BOLD}{char}{Colors.RESET}"
+                elif char in ['🐍', '🟢', '🍎']:
+                    line += char
+                else:
+                    line += char + ' '
+            output.append(line)
+        
+        output.append("")
+        output.append(f"{Colors.WHITE}Controls: WASD to move, +/- to adjust speed, Q to quit{Colors.RESET}")
+        output.append(f"{Colors.WHITE}Current speed: {self.game_speed_ms}ms per frame{Colors.RESET}")
+        
+        if self.debug:
+            debug_info = {
+                "snake_head": self.snake[0] if self.snake else None,
+                "snake_length": len(self.snake),
+                "direction": self.direction.name,
+                "food_position": self.food,
+                "score": self.score,
+                "game_speed_ms": self.game_speed_ms
+            }
+            output.append("")
+            output.append(f"{Colors.YELLOW}DEBUG: {json.dumps(debug_info)}{Colors.RESET}")
+        
+        return "\\n".join(output)
+
+# Global game instance
+game = WebSnakeGame()
+            `);
+            
+            startGame();
+        }
+        
+        function startGame() {
+            gameRunning = true;
+            gameLoop();
+        }
+        
+        async function gameLoop() {
+            if (!gameRunning) return;
+            
+            // Process any queued keys
+            if (keyQueue.length > 0) {
+                const key = keyQueue.shift();
+                const shouldContinue = pyodide.runPython(`game.handle_input('${key}')`);
+                if (!shouldContinue) {
+                    gameRunning = false;
+                    document.getElementById('game-output').innerHTML += '<br><span style="color: red;">Game ended by user!</span>';
+                    return;
+                }
+            }
+            
+            // Move snake
+            const moveResult = pyodide.runPython(`game.move_snake()`);
+            if (!moveResult) {
+                gameRunning = false;
+                const output = pyodide.runPython(`game.render_game()`);
+                document.getElementById('game-output').innerHTML = convertAnsiToHtml(output);
+                document.getElementById('game-output').innerHTML += '<br><span style="color: red; font-weight: bold;">GAME OVER!</span>';
+                return;
+            }
+            
+            // Render game
+            const output = pyodide.runPython(`game.render_game()`);
+            document.getElementById('game-output').innerHTML = convertAnsiToHtml(output);
+            
+            // Get current speed
+            const speed = pyodide.runPython(`game.game_speed_ms`);
+            
+            // Schedule next frame
+            setTimeout(gameLoop, speed);
+        }
+        
+        function sendKey(key) {
+            if (gameRunning) {
+                keyQueue.push(key);
+            }
+        }
+        
+        // Keyboard event handling
+        document.addEventListener('keydown', function(event) {
+            if (!gameRunning) return;
+            
+            let key = '';
+            switch(event.key) {
+                case 'ArrowUp': key = 'w'; break;
+                case 'ArrowDown': key = 's'; break;
+                case 'ArrowLeft': key = 'a'; break;
+                case 'ArrowRight': key = 'd'; break;
+                case 'w': case 'W': key = 'w'; break;
+                case 's': case 'S': key = 's'; break;
+                case 'a': case 'A': key = 'a'; break;
+                case 'd': case 'D': key = 'd'; break;
+                case '+': case '=': key = '+'; break;
+                case '-': case '_': key = '-'; break;
+                case 'q': case 'Q': key = 'q'; break;
+            }
+            
+            if (key) {
+                event.preventDefault();
+                sendKey(key);
+            }
+        });
+        
+        // Convert ANSI color codes to HTML
+        function convertAnsiToHtml(text) {
+            return text
+                .replace(/\\033\\[0m/g, '</span>')
+                .replace(/\\033\\[91m/g, '<span style="color: #ff6b6b;">')
+                .replace(/\\033\\[92m/g, '<span style="color: #51cf66;">')
+                .replace(/\\033\\[93m/g, '<span style="color: #ffd93d;">')
+                .replace(/\\033\\[94m/g, '<span style="color: #74c0fc;">')
+                .replace(/\\033\\[95m/g, '<span style="color: #d0bfff;">')
+                .replace(/\\033\\[96m/g, '<span style="color: #66d9ef;">')
+                .replace(/\\033\\[97m/g, '<span style="color: #f8f8f2;">')
+                .replace(/\\033\\[1m/g, '<span style="font-weight: bold;">');
+        }
+        
+        main();
+    </script>
+</body>
+</html>
