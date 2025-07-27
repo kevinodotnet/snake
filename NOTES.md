@@ -65,3 +65,29 @@
   - Call restore_terminal() in finally block
   - getch() no longer manages terminal mode, just reads from already-raw terminal
 - **Expected Result**: Arrow keys should be captured as \x1b[A sequences, not echoed
+
+## HTML Python Environment Bug Fixes
+
+### ANSI Color Code Handling Bug (Fixed)
+- **Problem**: ANSI reset codes (\033[0m) not properly closing HTML spans, causing color bleeding
+- **Root Cause**: Simple regex replacement didn't track open tags or handle nested color codes
+- **Fix**: Rewrote convertAnsiToHtml() function to properly track open span tags and close them on reset
+- **Result**: Colors now reset properly without bleeding into subsequent text
+
+### Emoji Spacing Inconsistency (Fixed) 
+- **Problem**: Emoji rendering inconsistent between web and terminal versions
+- **Fix**: Standardized emoji spacing in web version to match terminal behavior
+- **Result**: Consistent grid layout between both versions
+
+### Error Handling Missing (Fixed)
+- **Problem**: No error handling for Pyodide loading failures or Python runtime errors
+- **Fix**: Added comprehensive try-catch blocks for:
+  - Pyodide initialization failures
+  - Python code execution errors  
+  - Game loop runtime errors
+- **Result**: Better user experience with clear error messages instead of silent failures
+
+### Grid Dimension Inconsistency (Fixed)
+- **Problem**: Terminal version (80x40) vs web version (40x20) had different game areas
+- **Fix**: Standardized web version to 80x40 and adjusted CSS for proper display
+- **Result**: Consistent game experience across both platforms

@@ -24,12 +24,13 @@
         }
         
         #game-output {
-            font-size: 12px;
-            line-height: 1.2;
+            font-size: 8px;
+            line-height: 1.0;
             white-space: pre;
             font-family: 'Courier New', monospace;
-            min-height: 600px;
-            min-width: 800px;
+            min-height: 800px;
+            min-width: 1200px;
+            overflow: auto;
         }
         
         #controls {
@@ -141,7 +142,7 @@ class Colors:
     BOLD = '\\033[1m'
 
 class WebSnakeGame:
-    def __init__(self, width: int = 40, height: int = 20):
+    def __init__(self, width: int = 80, height: int = 40):
         self.width = width
         self.height = height
         self.debug = True
@@ -298,36 +299,42 @@ game = WebSnakeGame()
         async function gameLoop() {
             if (!gameRunning) return;
             
-            // Process any queued keys
-            if (keyQueue.length > 0) {
-                const key = keyQueue.shift();
-                const shouldContinue = pyodide.runPython(`game.handle_input('${key}')`);
-                if (!shouldContinue) {
+            try {
+                // Process any queued keys
+                if (keyQueue.length > 0) {
+                    const key = keyQueue.shift();
+                    const shouldContinue = pyodide.runPython(`game.handle_input('${key}')`);
+                    if (!shouldContinue) {
+                        gameRunning = false;
+                        document.getElementById('game-output').innerHTML += '<br><span style="color: red;">Game ended by user!</span>';
+                        return;
+                    }
+                }
+                
+                // Move snake
+                const moveResult = pyodide.runPython(`game.move_snake()`);
+                if (!moveResult) {
                     gameRunning = false;
-                    document.getElementById('game-output').innerHTML += '<br><span style="color: red;">Game ended by user!</span>';
+                    const output = pyodide.runPython(`game.render_game()`);
+                    document.getElementById('game-output').innerHTML = convertAnsiToHtml(output);
+                    document.getElementById('game-output').innerHTML += '<br><span style="color: red; font-weight: bold;">GAME OVER!</span>';
                     return;
                 }
-            }
-            
-            // Move snake
-            const moveResult = pyodide.runPython(`game.move_snake()`);
-            if (!moveResult) {
-                gameRunning = false;
+                
+                // Render game
                 const output = pyodide.runPython(`game.render_game()`);
                 document.getElementById('game-output').innerHTML = convertAnsiToHtml(output);
-                document.getElementById('game-output').innerHTML += '<br><span style="color: red; font-weight: bold;">GAME OVER!</span>';
-                return;
+                
+                // Get current speed
+                const speed = pyodide.runPython(`game.game_speed_ms`);
+                
+                // Schedule next frame
+                setTimeout(gameLoop, speed);
+            } catch (error) {
+                console.error('Game loop error:', error);
+                gameRunning = false;
+                document.getElementById('game-output').innerHTML += '<br><span style="color: red;">❌ Game encountered an error: ' + error.message + '</span>';
             }
-            
-            // Render game
-            const output = pyodide.runPython(`game.render_game()`);
-            document.getElementById('game-output').innerHTML = convertAnsiToHtml(output);
-            
-            // Get current speed
-            const speed = pyodide.runPython(`game.game_speed_ms`);
-            
-            // Schedule next frame
-            setTimeout(gameLoop, speed);
         }
         
         function sendKey(key) {
