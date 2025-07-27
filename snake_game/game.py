@@ -197,7 +197,8 @@ class SnakeGame:
                     print(char + ' ', end='')  # Add space for single-width chars to match double-width
             print()
         
-        print(f"\n{Colors.WHITE}Controls: Arrow keys or WASD to move, Q to quit{Colors.RESET}")
+        print(f"\n{Colors.WHITE}Controls: Arrow keys or WASD to move, +/- to adjust speed, Q to quit{Colors.RESET}")
+        print(f"{Colors.WHITE}Current speed: {self.game_speed_ms}ms per frame{Colors.RESET}")
     
     def setup_terminal(self):
         """Set terminal to cbreak mode with no echo for the entire game session"""
@@ -274,6 +275,12 @@ class SnakeGame:
             self.change_direction(Direction.LEFT)
         elif key == '\x1b[C' or key.lower() == 'd':  # Right arrow or D
             self.change_direction(Direction.RIGHT)
+        elif key == '+' or key == '=':  # + key (main or numpad)
+            # Decrease frame time (make faster) by 10ms, minimum 10ms
+            self.game_speed_ms = max(10, self.game_speed_ms - 10)
+        elif key == '-' or key == '_':  # - key (main or numpad)
+            # Increase frame time (make slower) by 10ms, maximum 1000ms
+            self.game_speed_ms = min(1000, self.game_speed_ms + 10)
         return True
             
     def run(self):
