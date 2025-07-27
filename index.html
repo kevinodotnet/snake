@@ -17,6 +17,8 @@
         .container {
             max-width: 800px;
             margin: 0 auto;
+            padding: 0 20px;
+            box-sizing: border-box;
         }
         
         h1 {
@@ -40,9 +42,11 @@
             border-radius: 5px;
             font-size: 1.2em;
             transition: all 0.3s ease;
+            touch-action: manipulation;
+            user-select: none;
         }
         
-        .game-link:hover {
+        .game-link:hover, .game-link:active {
             background-color: #0f0;
             color: #000;
             transform: scale(1.05);
@@ -61,6 +65,67 @@
         
         .github-link:hover {
             text-decoration: underline;
+        }
+        
+        /* Mobile responsive design */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            
+            .container {
+                padding: 0 10px;
+            }
+            
+            h1 {
+                font-size: 2.2em;
+                margin-bottom: 15px;
+            }
+            
+            .game-link {
+                padding: 15px 30px;
+                font-size: 1.1em;
+                margin: 8px;
+                width: calc(100% - 16px);
+                max-width: 300px;
+                text-align: center;
+            }
+            
+            .description {
+                margin: 30px 0;
+                font-size: 1em;
+            }
+            
+            .description ul {
+                padding-left: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+                margin-bottom: 10px;
+            }
+            
+            .game-link {
+                padding: 12px 20px;
+                font-size: 1em;
+                margin: 5px;
+            }
+            
+            .description {
+                margin: 20px 0;
+                font-size: 0.9em;
+            }
+            
+            .description h2 {
+                font-size: 1.3em;
+                margin: 20px 0 10px 0;
+            }
         }
     </style>
 </head>
