@@ -36,16 +36,9 @@ class Colors:
     BG_RED = '\033[41m'
 
 class SnakeGame:
-    def __init__(self, width: int = None, height: int = None, debug: bool = True, moves: List[str] = None, skip_menu: bool = False):
-        # Get terminal dimensions if not specified
-        if width is None or height is None:
-            terminal_size = shutil.get_terminal_size()
-            # Use 80% of terminal dimensions
-            self.width = int((terminal_size.columns // 2) * 0.8)  # 80% of available width (accounting for double-wide chars)
-            self.height = int((terminal_size.lines - 12) * 0.8)  # 80% of available height (minus UI elements)
-        else:
-            self.width = width
-            self.height = height
+    def __init__(self, width: int = 80, height: int = 40, debug: bool = True, moves: List[str] = None, skip_menu: bool = False):
+        self.width = width
+        self.height = height
         self.debug = debug
         self.moves = moves or []
         self.move_index = 0

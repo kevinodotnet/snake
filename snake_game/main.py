@@ -9,10 +9,10 @@ def main():
     parser = argparse.ArgumentParser(description='Terminal Snake Game')
     parser.add_argument('-d', '--debug', action='store_true', 
                        help='Enable debug mode with JSON state dumps')
-    parser.add_argument('--width', type=int, default=None, 
-                       help='Game width (default: auto-detect terminal width)')
-    parser.add_argument('--height', type=int, default=None, 
-                       help='Game height (default: auto-detect terminal height)')
+    parser.add_argument('--width', type=int, default=80, 
+                       help='Game width (default: 80)')
+    parser.add_argument('--height', type=int, default=40, 
+                       help='Game height (default: 40)')
     parser.add_argument('--moves', type=str, 
                        help='Sequence of moves: u(up), d(down), l(left), r(right), .(no move)')
     parser.add_argument('-g', '--game', action='store_true',
