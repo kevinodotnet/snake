@@ -4,6 +4,7 @@ import sys
 import json
 import termios
 import tty
+import select
 from typing import List, Tuple, Optional
 from enum import Enum
 
@@ -49,7 +50,7 @@ class SnakeGame:
         self.direction = Direction.RIGHT
         self.food: Optional[Tuple[int, int]] = None
         self.score = 0
-        self.game_speed = 0.15
+        self.game_speed_ms = 150  # Milliseconds between moves
         self.place_food()
         
     def place_food(self):
@@ -75,8 +76,8 @@ class SnakeGame:
         if new_head == self.food:
             self.score += 10
             self.place_food()
-            if self.game_speed > 0.05:
-                self.game_speed -= 0.005
+            if self.game_speed_ms > 50:
+                self.game_speed_ms -= 5  # Get faster as score increases
         else:
             self.snake.pop()
             
@@ -124,7 +125,7 @@ class SnakeGame:
             "direction": self.direction.name,
             "food_position": self.food,
             "score": self.score,
-            "game_speed": self.game_speed,
+            "game_speed_ms": self.game_speed_ms,
             "automated": self.automated,
             "skip_menu": self.skip_menu,
             "move_index": self.move_index,
@@ -187,19 +188,45 @@ class SnakeGame:
         
         print(f"\n{Colors.WHITE}Controls: Arrow keys or WASD to move, Q to quit{Colors.RESET}")
     
-    def getch(self):
-        """Get a single character from stdin without pressing enter"""
+    def getch(self, timeout_ms: int = None):
+        """Get a single character from stdin with optional timeout
+        
+        Args:
+            timeout_ms: Timeout in milliseconds. If None, blocks indefinitely.
+            
+        Returns:
+            str: Character pressed, or None if timeout occurred
+        """
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
+        
         try:
             tty.setraw(sys.stdin.fileno())
+            
+            if timeout_ms is not None:
+                # Use select to wait for input with timeout
+                timeout_sec = timeout_ms / 1000.0
+                ready, _, _ = select.select([sys.stdin], [], [], timeout_sec)
+                
+                if not ready:
+                    # Timeout occurred, no input available
+                    return None
+            
+            # Input is available (or no timeout specified)
             ch = sys.stdin.read(1)
+            
             # Handle arrow keys
             if ch == '\x1b':
-                ch += sys.stdin.read(2)
+                # For arrow keys, we need to read the next 2 characters
+                # Use a short timeout to avoid hanging if it's just ESC
+                ready, _, _ = select.select([sys.stdin], [], [], 0.1)
+                if ready:
+                    ch += sys.stdin.read(2)
+                    
+            return ch
+            
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-        return ch
     
     def handle_input(self, key: str) -> bool:
         """Handle keyboard input. Returns False if should quit"""
