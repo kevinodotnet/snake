@@ -40,9 +40,9 @@ class SnakeGame:
         # Get terminal dimensions if not specified
         if width is None or height is None:
             terminal_size = shutil.get_terminal_size()
-            # Use terminal dimensions, accounting for double-wide characters and some padding
-            self.width = terminal_size.columns // 2 - 2  # Divide by 2 for double-wide chars
-            self.height = terminal_size.lines - 12  # Leave room for header, controls, speed, debug info
+            # Use 80% of terminal dimensions
+            self.width = int((terminal_size.columns // 2) * 0.8)  # 80% of available width (accounting for double-wide chars)
+            self.height = int((terminal_size.lines - 12) * 0.8)  # 80% of available height (minus UI elements)
         else:
             self.width = width
             self.height = height
