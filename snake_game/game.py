@@ -151,25 +151,25 @@ class SnakeGame:
         # Create grid
         grid = [[' ' for _ in range(self.width)] for _ in range(self.height)]
         
-        # Draw borders
+        # Draw borders (using double-wide blocks)
         for x in range(self.width):
-            grid[0][x] = '█'
-            grid[self.height - 1][x] = '█'
+            grid[0][x] = '██'
+            grid[self.height - 1][x] = '██'
         for y in range(self.height):
-            grid[y][0] = '█'
-            grid[y][self.width - 1] = '█'
+            grid[y][0] = '██'
+            grid[y][self.width - 1] = '██'
             
-        # Draw snake
+        # Draw snake (using emojis)
         for i, (x, y) in enumerate(self.snake):
             if i == 0:
-                grid[y][x] = '●'  # Head
+                grid[y][x] = '🐍'  # Snake head
             else:
-                grid[y][x] = '○'  # Body
+                grid[y][x] = '🟢'  # Snake body (green circle)
                 
-        # Draw food
+        # Draw food (using fruit emoji)
         if self.food:
             fx, fy = self.food
-            grid[fy][fx] = '*'
+            grid[fy][fx] = '🍎'  # Apple for food
             
         # Print grid
         for y in range(self.height):
