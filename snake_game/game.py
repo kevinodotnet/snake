@@ -39,15 +39,10 @@ class SnakeGame:
     def __init__(self, width: int = None, height: int = None, debug: bool = True, moves: List[str] = None, skip_menu: bool = False):
         # Get terminal dimensions if not specified
         if width is None or height is None:
-            try:
-                terminal_size = shutil.get_terminal_size()
-                # Use terminal dimensions, accounting for double-wide characters and some padding
-                self.width = terminal_size.columns // 2 - 2  # Divide by 2 for double-wide chars
-                self.height = terminal_size.lines - 6  # Leave room for header and controls
-            except:
-                # Fallback to default if terminal size detection fails
-                self.width = 40
-                self.height = 20
+            terminal_size = shutil.get_terminal_size()
+            # Use terminal dimensions, accounting for double-wide characters and some padding
+            self.width = terminal_size.columns // 2 - 2  # Divide by 2 for double-wide chars
+            self.height = terminal_size.lines - 6  # Leave room for header and controls
         else:
             self.width = width
             self.height = height
