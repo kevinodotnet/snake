@@ -20,25 +20,29 @@
         
         #game-container {
             border: 2px solid #0f0;
-            padding: 10px;
+            padding: 15px;
             background-color: #111;
             border-radius: 5px;
             width: 100%;
-            max-width: 1200px;
+            max-width: 900px;
             box-sizing: border-box;
+            margin: 20px auto;
         }
         
         #game-output {
-            font-size: 6px;
+            font-size: 10px;
             line-height: 1.0;
             white-space: pre;
             font-family: 'Courier New', monospace;
-            min-height: 300px;
+            min-height: 400px;
             width: 100%;
             overflow: auto;
             word-spacing: 0;
             letter-spacing: 0;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
         }
         
         /* Ensure consistent character widths */
@@ -109,14 +113,21 @@
         }
         
         /* Mobile responsive breakpoints */
+        @media (max-width: 1024px) {
+            #game-output {
+                font-size: 9px;
+                min-height: 360px;
+            }
+        }
+        
         @media (max-width: 768px) {
             body {
                 padding: 5px;
             }
             
             #game-output {
-                font-size: 4px;
-                min-height: 200px;
+                font-size: 8px;
+                min-height: 320px;
             }
             
             h1 {
@@ -137,8 +148,8 @@
         
         @media (max-width: 480px) {
             #game-output {
-                font-size: 3px;
-                min-height: 150px;
+                font-size: 6px;
+                min-height: 250px;
             }
             
             .button {
@@ -161,8 +172,8 @@
         /* Landscape mobile */
         @media (max-height: 500px) and (orientation: landscape) {
             #game-output {
-                min-height: 120px;
-                font-size: 4px;
+                min-height: 180px;
+                font-size: 7px;
             }
             
             #controls {
@@ -171,6 +182,14 @@
             
             .direction-controls {
                 max-width: 160px;
+            }
+        }
+        
+        /* Large screens */
+        @media (min-width: 1200px) {
+            #game-output {
+                font-size: 12px;
+                min-height: 480px;
             }
         }
     </style>
@@ -265,7 +284,7 @@ class Colors:
     BOLD = '\\033[1m'
 
 class WebSnakeGame:
-    def __init__(self, width: int = 60, height: int = 30):
+    def __init__(self, width: int = 50, height: int = 25):
         self.width = width
         self.height = height
         self.debug = True
