@@ -293,11 +293,18 @@ class SnakeGame:
                         if next_move:
                             self.process_automated_move(next_move)
                     else:
-                        # Interactive mode - get keyboard input with timeout
+                        # Interactive mode - get keyboard input with timeout and maintain constant game rate
                         try:
+                            frame_start_time = time.time()
                             key = self.getch(timeout_ms=self.game_speed_ms)
                             if key and not self.handle_input(key):
                                 break  # User pressed Q to quit
+                            
+                            # Sleep for remaining time to maintain constant game rate
+                            elapsed_time = (time.time() - frame_start_time) * 1000  # Convert to ms
+                            remaining_time = self.game_speed_ms - elapsed_time
+                            if remaining_time > 0:
+                                time.sleep(remaining_time / 1000.0)  # Convert back to seconds
                         except KeyboardInterrupt:
                             break
                     
