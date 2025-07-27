@@ -43,6 +43,7 @@ class SnakeGame:
         self.automated = bool(moves)
         self.skip_menu = skip_menu
         self.original_terminal_settings = None
+        self.debug_log = []  # Store recent debug messages
         self.reset_game()
         self.state = GameState.PLAYING if (self.automated or self.skip_menu) else GameState.MENU
         
@@ -188,6 +189,12 @@ class SnakeGame:
             print()
         
         print(f"\n{Colors.WHITE}Controls: Arrow keys or WASD to move, Q to quit{Colors.RESET}")
+        
+        # Show debug log on screen
+        if self.debug_log:
+            print(f"\n{Colors.YELLOW}DEBUG LOG:{Colors.RESET}")
+            for msg in self.debug_log[-5:]:  # Show last 5 messages
+                print(f"{Colors.YELLOW}{msg}{Colors.RESET}")
     
     def setup_terminal(self):
         """Set terminal to cbreak mode with no echo for the entire game session"""
@@ -246,38 +253,39 @@ class SnakeGame:
     
     def handle_input(self, key: str) -> bool:
         """Handle keyboard input. Returns False if should quit"""
-        print(f"key:{key}")
-        print(f"repr(key): {repr(key)}")
-        print(f"len(key): {len(key)}")
+        # Add to debug log instead of print
+        self.debug_log.append(f"key: {key}")
+        self.debug_log.append(f"repr: {repr(key)}")
+        self.debug_log.append(f"len: {len(key)}")
         
         if key.lower() == 'q':
             return False
         elif key == '\x1b[A':
-            print("DEBUG: UP arrow matched!")
+            self.debug_log.append("UP arrow matched!")
             self.change_direction(Direction.UP)
         elif key.lower() == 'w':
-            print("DEBUG: W key matched!")
+            self.debug_log.append("W key matched!")
             self.change_direction(Direction.UP)
         elif key == '\x1b[B':
-            print("DEBUG: DOWN arrow matched!")
+            self.debug_log.append("DOWN arrow matched!")
             self.change_direction(Direction.DOWN)
         elif key.lower() == 's':
-            print("DEBUG: S key matched!")
+            self.debug_log.append("S key matched!")
             self.change_direction(Direction.DOWN)
         elif key == '\x1b[D':
-            print("DEBUG: LEFT arrow matched!")
+            self.debug_log.append("LEFT arrow matched!")
             self.change_direction(Direction.LEFT)
         elif key.lower() == 'a':
-            print("DEBUG: A key matched!")
+            self.debug_log.append("A key matched!")
             self.change_direction(Direction.LEFT)
         elif key == '\x1b[C':
-            print("DEBUG: RIGHT arrow matched!")
+            self.debug_log.append("RIGHT arrow matched!")
             self.change_direction(Direction.RIGHT)
         elif key.lower() == 'd':
-            print("DEBUG: D key matched!")
+            self.debug_log.append("D key matched!")
             self.change_direction(Direction.RIGHT)
         else:
-            print(f"DEBUG: No match for key {repr(key)}")
+            self.debug_log.append(f"No match for key {repr(key)}")
         return True
             
     def run(self):
