@@ -242,13 +242,13 @@ class SnakeGame:
         return move
         
     def process_automated_move(self, move: str):
-        if move == 'u':
+        if move == 'u' or move == '8':
             self.change_direction(Direction.UP)
-        elif move == 'd':
+        elif move == 'd' or move == '5':
             self.change_direction(Direction.DOWN)
-        elif move == 'l':
+        elif move == 'l' or move == '4':
             self.change_direction(Direction.LEFT)
-        elif move == 'r':
+        elif move == 'r' or move == '6':
             self.change_direction(Direction.RIGHT)
         elif move == '.':
             pass
