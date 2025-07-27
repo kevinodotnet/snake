@@ -244,10 +244,18 @@ class SnakeGame:
         # Handle arrow keys
         if ch == '\x1b':
             # For arrow keys, we need to read the next 2 characters
-            # Use a short timeout to avoid hanging if it's just ESC
-            ready, _, _ = select.select([sys.stdin], [], [], 0.1)
-            if ready:
-                ch += sys.stdin.read(2)
+            # Try to read them immediately without timeout
+            try:
+                next_ch = sys.stdin.read(1)
+                if next_ch == '[':
+                    # This is likely an arrow key, read the final character
+                    final_ch = sys.stdin.read(1)
+                    ch += next_ch + final_ch
+                else:
+                    ch += next_ch
+            except:
+                # If we can't read more, just return the escape character
+                pass
                 
         return ch
     
