@@ -92,16 +92,25 @@
         let keyQueue = [];
         
         async function main() {
-            pyodide = await loadPyodide();
-            
-            // Install required packages
-            await pyodide.loadPackage(["micropip"]);
-            
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('game-container').style.display = 'block';
+            try {
+                pyodide = await loadPyodide();
+                
+                // Install required packages
+                await pyodide.loadPackage(["micropip"]);
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('game-container').style.display = 'block';
+            } catch (error) {
+                console.error('Failed to load Pyodide:', error);
+                document.getElementById('loading').innerHTML = 
+                    '<span style="color: red;">❌ Failed to load Python environment. Please refresh the page to try again.</span><br>' +
+                    '<span style="color: #888;">Error: ' + error.message + '</span>';
+                return;
+            }
             
             // Load the Python game code
-            pyodide.runPython(`
+            try {
+                pyodide.runPython(`
 import asyncio
 import time
 import random
@@ -243,7 +252,8 @@ class WebSnakeGame:
                 if char == '██':
                     line += f"{Colors.CYAN}{Colors.BOLD}{char}{Colors.RESET}"
                 elif char in ['🐍', '🟢', '🍎']:
-                    line += char
+                    # Emojis are double-width, so add them without extra spacing
+                    line += char + ' '
                 else:
                     line += char + ' '
             output.append(line)
@@ -268,9 +278,16 @@ class WebSnakeGame:
 
 # Global game instance
 game = WebSnakeGame()
-            `);
-            
-            startGame();
+                `);
+                
+                startGame();
+            } catch (error) {
+                console.error('Failed to initialize game:', error);
+                document.getElementById('loading').innerHTML = 
+                    '<span style="color: red;">❌ Failed to initialize game. Please refresh the page to try again.</span><br>' +
+                    '<span style="color: #888;">Error: ' + error.message + '</span>';
+                return;
+            }
         }
         
         function startGame() {
@@ -346,16 +363,41 @@ game = WebSnakeGame()
         
         // Convert ANSI color codes to HTML
         function convertAnsiToHtml(text) {
-            return text
-                .replace(/\\033\\[0m/g, '</span>')
-                .replace(/\\033\\[91m/g, '<span style="color: #ff6b6b;">')
-                .replace(/\\033\\[92m/g, '<span style="color: #51cf66;">')
-                .replace(/\\033\\[93m/g, '<span style="color: #ffd93d;">')
-                .replace(/\\033\\[94m/g, '<span style="color: #74c0fc;">')
-                .replace(/\\033\\[95m/g, '<span style="color: #d0bfff;">')
-                .replace(/\\033\\[96m/g, '<span style="color: #66d9ef;">')
-                .replace(/\\033\\[97m/g, '<span style="color: #f8f8f2;">')
-                .replace(/\\033\\[1m/g, '<span style="font-weight: bold;">');
+            let result = text;
+            let openTags = 0;
+            
+            // First, handle reset codes by closing all open tags
+            result = result.replace(/\\033\\[0m/g, () => {
+                let closeTags = '</span>'.repeat(openTags);
+                openTags = 0;
+                return closeTags;
+            });
+            
+            // Then handle color and style codes
+            const colorMap = {
+                '\\033\\[91m': '<span style="color: #ff6b6b;">',     // Red
+                '\\033\\[92m': '<span style="color: #51cf66;">',     // Green
+                '\\033\\[93m': '<span style="color: #ffd93d;">',     // Yellow
+                '\\033\\[94m': '<span style="color: #74c0fc;">',     // Blue
+                '\\033\\[95m': '<span style="color: #d0bfff;">',     // Magenta
+                '\\033\\[96m': '<span style="color: #66d9ef;">',     // Cyan
+                '\\033\\[97m': '<span style="color: #f8f8f2;">',     // White
+                '\\033\\[1m': '<span style="font-weight: bold;">'    // Bold
+            };
+            
+            for (const [ansiCode, htmlTag] of Object.entries(colorMap)) {
+                result = result.replace(new RegExp(ansiCode, 'g'), () => {
+                    openTags++;
+                    return htmlTag;
+                });
+            }
+            
+            // Close any remaining open tags at the end
+            if (openTags > 0) {
+                result += '</span>'.repeat(openTags);
+            }
+            
+            return result;
         }
         
         main();
