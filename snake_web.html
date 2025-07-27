@@ -30,11 +30,11 @@
         }
         
         #game-output {
-            font-size: 10px;
+            font-size: 16px;
             line-height: 1.0;
             white-space: pre;
             font-family: 'Courier New', monospace;
-            min-height: 400px;
+            min-height: 500px;
             width: 100%;
             overflow: auto;
             word-spacing: 0;
@@ -115,8 +115,8 @@
         /* Mobile responsive breakpoints */
         @media (max-width: 1024px) {
             #game-output {
-                font-size: 9px;
-                min-height: 360px;
+                font-size: 14px;
+                min-height: 450px;
             }
         }
         
@@ -126,8 +126,8 @@
             }
             
             #game-output {
-                font-size: 8px;
-                min-height: 320px;
+                font-size: 12px;
+                min-height: 400px;
             }
             
             h1 {
@@ -148,8 +148,8 @@
         
         @media (max-width: 480px) {
             #game-output {
-                font-size: 6px;
-                min-height: 250px;
+                font-size: 10px;
+                min-height: 350px;
             }
             
             .button {
@@ -172,8 +172,8 @@
         /* Landscape mobile */
         @media (max-height: 500px) and (orientation: landscape) {
             #game-output {
-                min-height: 180px;
-                font-size: 7px;
+                min-height: 220px;
+                font-size: 8px;
             }
             
             #controls {
@@ -188,8 +188,8 @@
         /* Large screens */
         @media (min-width: 1200px) {
             #game-output {
-                font-size: 12px;
-                min-height: 480px;
+                font-size: 18px;
+                min-height: 600px;
             }
         }
     </style>
@@ -284,7 +284,7 @@ class Colors:
     BOLD = '\\033[1m'
 
 class WebSnakeGame:
-    def __init__(self, width: int = 50, height: int = 25):
+    def __init__(self, width: int = 30, height: int = 40):
         self.width = width
         self.height = height
         self.debug = True
