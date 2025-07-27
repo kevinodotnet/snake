@@ -190,15 +190,17 @@ class SnakeGame:
         print(f"\n{Colors.WHITE}Controls: Arrow keys or WASD to move, Q to quit{Colors.RESET}")
     
     def setup_terminal(self):
-        """Set terminal to cbreak mode for the entire game session"""
+        """Set terminal to cbreak mode with no echo for the entire game session"""
         if not self.automated:
             try:
                 fd = sys.stdin.fileno()
                 self.original_terminal_settings = termios.tcgetattr(fd)
-                # Use cbreak mode instead of raw mode to preserve line endings
-                tty.setcbreak(sys.stdin.fileno())
+                # Use cbreak mode and disable echo
+                new_attrs = termios.tcgetattr(fd)
+                new_attrs[3] &= ~(termios.ICANON | termios.ECHO)  # Disable canonical mode and echo
+                termios.tcsetattr(fd, termios.TCSADRAIN, new_attrs)
             except Exception as e:
-                print(f"Warning: Could not set cbreak mode: {e}")
+                print(f"Warning: Could not set terminal mode: {e}")
     
     def restore_terminal(self):
         """Restore terminal to original settings"""
