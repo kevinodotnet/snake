@@ -247,12 +247,37 @@ class SnakeGame:
     def handle_input(self, key: str) -> bool:
         """Handle keyboard input. Returns False if should quit"""
         print(f"key:{key}")
+        print(f"repr(key): {repr(key)}")
+        print(f"len(key): {len(key)}")
+        
         if key.lower() == 'q':
             return False
-        else:
-            # TEMPORARY DEBUG: Make ANY key change direction to UP
-            print(f"DEBUG: Changing direction to UP for any key: {repr(key)}")
+        elif key == '\x1b[A':
+            print("DEBUG: UP arrow matched!")
             self.change_direction(Direction.UP)
+        elif key.lower() == 'w':
+            print("DEBUG: W key matched!")
+            self.change_direction(Direction.UP)
+        elif key == '\x1b[B':
+            print("DEBUG: DOWN arrow matched!")
+            self.change_direction(Direction.DOWN)
+        elif key.lower() == 's':
+            print("DEBUG: S key matched!")
+            self.change_direction(Direction.DOWN)
+        elif key == '\x1b[D':
+            print("DEBUG: LEFT arrow matched!")
+            self.change_direction(Direction.LEFT)
+        elif key.lower() == 'a':
+            print("DEBUG: A key matched!")
+            self.change_direction(Direction.LEFT)
+        elif key == '\x1b[C':
+            print("DEBUG: RIGHT arrow matched!")
+            self.change_direction(Direction.RIGHT)
+        elif key.lower() == 'd':
+            print("DEBUG: D key matched!")
+            self.change_direction(Direction.RIGHT)
+        else:
+            print(f"DEBUG: No match for key {repr(key)}")
         return True
             
     def run(self):
