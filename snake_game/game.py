@@ -91,133 +91,6 @@ class SnakeGame:
         if new_direction != opposite_directions.get(self.direction):
             self.direction = new_direction
             
-        
-    def get_key(self, timeout=0):
-        """Simple keyboard input that works in most environments"""
-        try:
-            # For non-blocking input, try a simple approach
-            if timeout == 0:
-                # Try to check if there's any input using a very short timeout
-                import select
-                ready = select.select([sys.stdin], [], [], 0.001)  # 1ms timeout
-                if not ready[0]:
-                    return None
-            
-            # If we get here, there might be input available
-            fd = sys.stdin.fileno()
-            old_settings = termios.tcgetattr(fd)
-            
-            try:
-                tty.setraw(sys.stdin.fileno())
-                key = sys.stdin.read(1)
-                
-                if not key:  # Empty string means EOF or closed stdin
-                    self.log_debug("get_key() got empty string (EOF)")
-                    return None
-                    
-                self.log_debug(f"get_key() read character: {repr(key)}")
-                
-                # Handle arrow keys
-                if key == '\x1b':
-                    try:
-                        key += sys.stdin.read(2)
-                        self.log_debug(f"Arrow key sequence: {repr(key)}")
-                    except:
-                        pass
-                
-                return key
-                
-            finally:
-                termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-                
-        except Exception as e:
-            self.log_debug(f"get_key() exception: {e}")
-            return None
-        
-    def handle_input(self, key: str):
-        self.last_key = key
-        
-        # Debug logging and breakpoint when key is pressed
-        if key and not self.automated:
-            self.log_debug(f"handle_input() called with key: {repr(key)}")
-            # breakpoint()
-        
-        if self.state == GameState.MENU:
-            if key.lower() == 'q':
-                return False
-            else:
-                self.state = GameState.PLAYING
-                return True
-                
-        elif self.state == GameState.PLAYING:
-            if key.lower() == 'q':
-                return False
-            elif key == '\x1b[A' or key == '8':
-                self.change_direction(Direction.UP)
-            elif key == '\x1b[B' or key == '5':
-                self.change_direction(Direction.DOWN)
-            elif key == '\x1b[D' or key == '4':
-                self.change_direction(Direction.LEFT)
-            elif key == '\x1b[C' or key == '6':
-                self.change_direction(Direction.RIGHT)
-                
-        elif self.state == GameState.GAME_OVER:
-            if key.lower() == 'q':
-                return False
-            elif key.lower() == 'r':
-                self.reset_game()
-                self.state = GameState.PLAYING
-                
-        return True
-        
-    def log_debug(self, message: str):
-        """Add a debug message to the display queue"""
-        if not self.automated:  # Only log for interactive games
-            import time
-            timestamp = time.strftime("%H:%M:%S")
-            self.debug_messages.append(f"[{timestamp}] {message}")
-            # Keep only last 10 messages
-            if len(self.debug_messages) > 10:
-                self.debug_messages.pop(0)
-                
-    def setup_terminal(self):
-        """Set up terminal for raw input mode"""
-        if not self.automated:
-            try:
-                import fcntl
-                fd = sys.stdin.fileno()
-                # Only try to save settings if we can get them
-                try:
-                    self.original_terminal_settings = termios.tcgetattr(fd)
-                    tty.setraw(fd)
-                    self.log_debug("Terminal set to raw mode")
-                except OSError:
-                    # Fallback for environments that don't support raw mode
-                    self.log_debug("Raw mode not available, using fallback")
-                    pass
-                
-                # Make stdin non-blocking (this usually works even when raw mode doesn't)
-                flags = fcntl.fcntl(fd, fcntl.F_GETFL)
-                fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-                self.log_debug("Set non-blocking mode")
-            except Exception as e:
-                self.log_debug(f"Failed to setup terminal: {e}")
-                
-    def restore_terminal(self):
-        """Restore terminal to original settings"""
-        if self.original_terminal_settings and not self.automated:
-            try:
-                import fcntl
-                fd = sys.stdin.fileno()
-                # Restore blocking mode
-                flags = fcntl.fcntl(fd, fcntl.F_GETFL)
-                fcntl.fcntl(fd, fcntl.F_SETFL, flags & ~os.O_NONBLOCK)
-                # Restore original settings
-                termios.tcsetattr(fd, termios.TCSADRAIN, self.original_terminal_settings)
-                self.log_debug("Terminal restored")
-            except Exception as e:
-                self.log_debug(f"Failed to restore terminal: {e}")
-        
     def get_next_move(self) -> Optional[str]:
         if not self.automated or self.move_index >= len(self.moves):
             return None
@@ -249,7 +122,6 @@ class SnakeGame:
             "direction": self.direction.name,
             "food_position": self.food,
             "score": self.score,
-            "last_key": self.last_key,
             "game_speed": self.game_speed,
             "automated": self.automated,
             "skip_menu": self.skip_menu,
@@ -262,17 +134,7 @@ class SnakeGame:
         if self.debug:
             print(f"\nDEBUG STATE: {json.dumps(self.get_debug_state(), indent=2)}")
             
-    def wait_for_debug_input(self):
-        if self.debug:
-            print("DEBUG: Press arrow key to move, ENTER to continue, or 'q' to quit...")
-            key = self.get_key(timeout=1)
-            return key
-        return None
-        
     def run(self):
-        # Set up terminal for raw input
-        self.setup_terminal()
-        
         try:
             if self.automated or self.skip_menu:
                 self.state = GameState.PLAYING
@@ -281,21 +143,7 @@ class SnakeGame:
                 if self.automated and self.is_moves_exhausted():
                     break
                     
-                if self.state == GameState.MENU:
-                    if not self.automated:
-                        self.render_menu()
-                        if self.debug:
-                            self.print_debug_state()
-                        key = self.get_key(timeout=1)
-                        if key and not self.handle_input(key):
-                            break
-                    else:
-                        self.state = GameState.PLAYING
-                        
-                elif self.state == GameState.PLAYING:
-                    if not self.automated or self.debug:
-                        self.render_game()
-                        
+                if self.state == GameState.PLAYING:
                     if self.debug:
                         self.print_debug_state()
                         
@@ -304,47 +152,6 @@ class SnakeGame:
                         next_move = self.get_next_move()
                         if next_move:
                             self.process_automated_move(next_move)
-                        if self.debug and not self.is_moves_exhausted():
-                            debug_key = self.wait_for_debug_input()
-                            if debug_key and debug_key.lower() == 'q':
-                                break
-                    else:
-                        if self.debug:
-                            debug_key = self.wait_for_debug_input()
-                            if debug_key and debug_key.lower() == 'q':
-                                break
-                            if debug_key and debug_key != '\n' and debug_key != '\r':
-                                self.handle_input(debug_key)
-                        else:
-                            # Non-debug mode: Try different input methods
-                            try:
-                                # First try direct read
-                                key = os.read(sys.stdin.fileno(), 1).decode('utf-8', errors='ignore')
-                                if key:
-                                    self.log_debug(f"Read key: {repr(key)}")
-                                    
-                                    if key == '\x1b':
-                                        # Read arrow key sequence
-                                        try:
-                                            additional = os.read(sys.stdin.fileno(), 2).decode('utf-8', errors='ignore')
-                                            key += additional
-                                            self.log_debug(f"Arrow key: {repr(key)}")
-                                        except:
-                                            pass
-                                    
-                                    if not self.handle_input(key):
-                                        break
-                                        
-                            except OSError as e:
-                                if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
-                                    self.log_debug(f"Read error: {e}")
-                                # If direct read fails, try the original get_key approach
-                                try:
-                                    key = self.get_key(timeout=0)
-                                    if key and not self.handle_input(key):
-                                        break
-                                except:
-                                    pass
                     
                     if not self.move_snake():
                         self.state = GameState.GAME_OVER
@@ -356,23 +163,10 @@ class SnakeGame:
                         time.sleep(0.1)
                             
                 elif self.state == GameState.GAME_OVER:
-                    # Render final game state and exit
-                    self.render_game()
-                    print(f"\n{Colors.RED}{Colors.BOLD}GAME OVER!{Colors.RESET}")
-                    print(f"{Colors.WHITE}Final Score: {Colors.YELLOW}{self.score}{Colors.RESET}")
-                    if self.automated:
-                        print(f"\nFINAL STATE: {json.dumps(self.get_debug_state(), indent=2)}")
                     break
                         
         except KeyboardInterrupt:
-            # For Ctrl+C, show final game state
-            self.render_game()
-            print(f"\n{Colors.RED}{Colors.BOLD}GAME INTERRUPTED!{Colors.RESET}")
-            print(f"{Colors.WHITE}Final Score: {Colors.YELLOW}{self.score}{Colors.RESET}")
+            pass
         finally:
-            # Restore terminal settings
-            self.restore_terminal()
-            # Don't clear screen on exit - leave final state visible
-            if self.automated and not self.state == GameState.GAME_OVER:
+            if self.automated:
                 print(f"\nFINAL STATE: {json.dumps(self.get_debug_state(), indent=2)}")
-            print(f"\n{Colors.YELLOW}Thanks for playing Snake! 🐍{Colors.RESET}")
