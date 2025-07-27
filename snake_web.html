@@ -251,12 +251,14 @@ class WebSnakeGame:
             for x in range(self.width):
                 char = grid[y][x]
                 if char == '██':
+                    # Border blocks are double-width, no extra spacing needed
                     line += f"{Colors.CYAN}{Colors.BOLD}{char}{Colors.RESET}"
                 elif char in ['🐍', '🟢', '🍎']:
-                    # Emojis are double-width, so add them without extra spacing
-                    line += char + ' '
+                    # Emojis are double-width, no extra spacing needed
+                    line += char
                 else:
-                    line += char + ' '
+                    # Empty spaces need double-width to match borders and emojis
+                    line += '  '
             output.append(line)
         
         output.append("")

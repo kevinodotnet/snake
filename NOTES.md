@@ -97,3 +97,9 @@
 - **Root Cause**: Incorrect escaping of backslashes in regex patterns for ANSI codes
 - **Fix**: Changed from string-based regex construction to proper regex literals with correct escaping
 - **Result**: JavaScript error eliminated, ANSI conversion now works properly
+
+### Grid Layout Alignment Issue (Fixed)
+- **Problem**: Snake head and food emojis misaligned with grid borders due to inconsistent spacing
+- **Root Cause**: Mixed spacing - borders (██) had no extra space, emojis had +1 space, empty cells had +1 space
+- **Fix**: Made spacing consistent - no extra space for double-width characters (borders and emojis), double space for empty cells
+- **Result**: Perfect grid alignment with all elements properly positioned
