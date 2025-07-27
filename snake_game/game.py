@@ -42,6 +42,7 @@ class SnakeGame:
         self.move_index = 0
         self.automated = bool(moves)
         self.skip_menu = skip_menu
+        self.original_terminal_settings = None
         self.reset_game()
         self.state = GameState.PLAYING if (self.automated or self.skip_menu) else GameState.MENU
         
@@ -188,8 +189,29 @@ class SnakeGame:
         
         print(f"\n{Colors.WHITE}Controls: Arrow keys or WASD to move, Q to quit{Colors.RESET}")
     
+    def setup_terminal(self):
+        """Set terminal to cbreak mode for the entire game session"""
+        if not self.automated:
+            try:
+                fd = sys.stdin.fileno()
+                self.original_terminal_settings = termios.tcgetattr(fd)
+                # Use cbreak mode instead of raw mode to preserve line endings
+                tty.setcbreak(sys.stdin.fileno())
+            except Exception as e:
+                print(f"Warning: Could not set cbreak mode: {e}")
+    
+    def restore_terminal(self):
+        """Restore terminal to original settings"""
+        if self.original_terminal_settings and not self.automated:
+            try:
+                fd = sys.stdin.fileno()
+                termios.tcsetattr(fd, termios.TCSADRAIN, self.original_terminal_settings)
+            except Exception as e:
+                print(f"Warning: Could not restore terminal: {e}")
+
     def getch(self, timeout_ms: int = None):
         """Get a single character from stdin with optional timeout
+        Terminal should already be in cbreak mode when this is called.
         
         Args:
             timeout_ms: Timeout in milliseconds. If None, blocks indefinitely.
@@ -207,25 +229,18 @@ class SnakeGame:
                 return None
         
         # Input is available (or no timeout specified)
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
+        # Terminal is already in cbreak mode, just read
+        ch = sys.stdin.read(1)
         
-        try:
-            tty.setraw(sys.stdin.fileno())
-            ch = sys.stdin.read(1)
-            
-            # Handle arrow keys
-            if ch == '\x1b':
-                # For arrow keys, we need to read the next 2 characters
-                # Use a short timeout to avoid hanging if it's just ESC
-                ready, _, _ = select.select([sys.stdin], [], [], 0.1)
-                if ready:
-                    ch += sys.stdin.read(2)
-                    
-            return ch
-            
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        # Handle arrow keys
+        if ch == '\x1b':
+            # For arrow keys, we need to read the next 2 characters
+            # Use a short timeout to avoid hanging if it's just ESC
+            ready, _, _ = select.select([sys.stdin], [], [], 0.1)
+            if ready:
+                ch += sys.stdin.read(2)
+                
+        return ch
     
     def handle_input(self, key: str) -> bool:
         """Handle keyboard input. Returns False if should quit"""
@@ -242,6 +257,9 @@ class SnakeGame:
         return True
             
     def run(self):
+        # Set up terminal for raw mode
+        self.setup_terminal()
+        
         try:
             if self.automated or self.skip_menu:
                 self.state = GameState.PLAYING
@@ -290,6 +308,8 @@ class SnakeGame:
         except KeyboardInterrupt:
             pass
         finally:
+            # Restore terminal settings
+            self.restore_terminal()
             if self.automated:
                 print(f"\nFINAL STATE: {json.dumps(self.get_debug_state(), indent=2)}")
             print(f"\n{Colors.YELLOW}Thanks for playing Snake! 🐍{Colors.RESET}")

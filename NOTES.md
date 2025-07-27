@@ -54,3 +54,14 @@
 - Single-character reading with arrow key sequence detection
 - ANSI color codes for terminal display
 - Grid-based rendering system
+
+### Terminal Echo Issue Fix
+- **Problem**: Arrow keys printing "^[[A" to screen instead of being captured
+- **Root Cause**: Terminal needs to be in raw mode BEFORE user presses keys, not after
+- **Previous Approach**: Set raw mode only when reading input (too late)
+- **New Approach**: Set raw mode for entire game session
+  - Call setup_terminal() at start of run()
+  - Keep terminal in raw mode throughout game
+  - Call restore_terminal() in finally block
+  - getch() no longer manages terminal mode, just reads from already-raw terminal
+- **Expected Result**: Arrow keys should be captured as \x1b[A sequences, not echoed
