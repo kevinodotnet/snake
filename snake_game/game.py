@@ -1,13 +1,7 @@
 import random
 import time
 import sys
-import termios
-import tty
-import select
 import json
-import os
-import fcntl
-import errno
 from typing import List, Tuple, Optional
 from enum import Enum
 
@@ -45,11 +39,8 @@ class SnakeGame:
         self.move_index = 0
         self.automated = bool(moves)
         self.skip_menu = skip_menu
-        self.debug_messages = []
-        self.original_terminal_settings = None
         self.reset_game()
         self.state = GameState.PLAYING if (self.automated or self.skip_menu) else GameState.MENU
-        self.last_key = None
         
     def reset_game(self):
         self.snake: List[Tuple[int, int]] = [(self.width // 2, self.height // 2)]
@@ -100,103 +91,6 @@ class SnakeGame:
         if new_direction != opposite_directions.get(self.direction):
             self.direction = new_direction
             
-    def clear_screen(self):
-        print('\033[2J\033[H', end='')
-        
-    def render_border(self):
-        border_char = '█'
-        print(f"{Colors.CYAN}{Colors.BOLD}", end='')
-        
-        print(border_char * self.width)
-        
-        for y in range(1, self.height - 1):
-            print(border_char, end='')
-            print(' ' * (self.width - 2), end='')
-            print(border_char)
-            
-        print(border_char * self.width)
-        print(Colors.RESET, end='')
-        
-    def render_game(self):
-        self.clear_screen()
-        
-        print(f"{Colors.YELLOW}{Colors.BOLD}🐍 SNAKE GAME 🐍{Colors.RESET}")
-        print(f"{Colors.WHITE}Score: {Colors.GREEN}{self.score}{Colors.RESET} | Direction: {Colors.CYAN}{self.direction.name}{Colors.RESET} | Last Key: {Colors.MAGENTA}{self.last_key}{Colors.RESET}")
-        
-        # Always show debug state during gameplay
-        if not self.automated:
-            state = self.get_debug_state()
-            print(f"{Colors.YELLOW}STATE: {state['state']} | HEAD: {state['snake_head']} | DIR: {state['direction']} | KEY: {state['last_key']}{Colors.RESET}")
-        
-        print()
-        
-        grid = [[' ' for _ in range(self.width)] for _ in range(self.height)]
-        
-        for x in range(self.width):
-            grid[0][x] = '█'
-            grid[self.height - 1][x] = '█'
-        for y in range(self.height):
-            grid[y][0] = '█'
-            grid[y][self.width - 1] = '█'
-            
-        for i, (x, y) in enumerate(self.snake):
-            if i == 0:
-                grid[y][x] = '●'
-            else:
-                grid[y][x] = '○'
-                
-        if self.food:
-            fx, fy = self.food
-            grid[fy][fx] = '*'
-            
-        for y in range(self.height):
-            for x in range(self.width):
-                char = grid[y][x]
-                if char == '█':
-                    print(f"{Colors.CYAN}{Colors.BOLD}{char}{Colors.RESET}", end='')
-                elif char == '●':
-                    print(f"{Colors.GREEN}{Colors.BOLD}{char}{Colors.RESET}", end='')
-                elif char == '○':
-                    print(f"{Colors.GREEN}{char}{Colors.RESET}", end='')
-                elif char == '*':
-                    print(f"{Colors.RED}{Colors.BOLD}{char}{Colors.RESET}", end='')
-                else:
-                    print(char, end='')
-            print()
-            
-        # Display debug messages below the game (last 10, most recent last)
-        if self.debug_messages:
-            print(f"\n{Colors.CYAN}--- DEBUG MESSAGES ---{Colors.RESET}")
-            for msg in self.debug_messages[-10:]:
-                print(f"{Colors.YELLOW}{msg}{Colors.RESET}")
-            
-    def render_menu(self):
-        self.clear_screen()
-        print(f"{Colors.YELLOW}{Colors.BOLD}")
-        print("🐍" * 20)
-        print("      SNAKE GAME")
-        print("🐍" * 20)
-        print(f"{Colors.RESET}")
-        print()
-        print(f"{Colors.WHITE}Controls:{Colors.RESET}")
-        print(f"{Colors.GREEN}Arrow Keys{Colors.RESET} or {Colors.GREEN}Numpad 4/5/6/8{Colors.RESET} - Move")
-        print(f"{Colors.GREEN}Q{Colors.RESET} - Quit")
-        print(f"{Colors.GREEN}R{Colors.RESET} - Restart (when game over)")
-        print()
-        print(f"{Colors.CYAN}Press any key to start!{Colors.RESET}")
-        
-    def render_game_over(self):
-        self.clear_screen()
-        print(f"{Colors.RED}{Colors.BOLD}")
-        print("💀" * 15)
-        print("   GAME OVER!")
-        print("💀" * 15)
-        print(f"{Colors.RESET}")
-        print()
-        print(f"{Colors.WHITE}Final Score: {Colors.YELLOW}{self.score}{Colors.RESET}")
-        print()
-        print(f"{Colors.GREEN}R{Colors.RESET} - Play Again")
-        print(f"{Colors.GREEN}Q{Colors.RESET} - Quit")
         
     def get_key(self, timeout=0):
         """Simple keyboard input that works in most environments"""
